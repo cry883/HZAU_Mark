@@ -22,10 +22,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   <Link className="nav-link" href="/">首页</Link>
                   <Link className="nav-link" href="/boards">榜单</Link>
                   <Link className="nav-link" href="/boards/new">创建榜单</Link>
+                  {auth && <Link className="nav-link" href="/invite/analytics">邀请分析</Link>}
                   {isAdmin && (
                     <>
                       <Link className="nav-link" href="/admin/boards">审核榜单</Link>
                       <Link className="nav-link" href="/admin/items">审核对象</Link>
+                      <Link className="nav-link" href="/admin/invite-codes">邀请码</Link>
                     </>
                   )}
                 </div>
@@ -52,10 +54,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   <Link className="nav-link" href="/">首页</Link>
                   <Link className="nav-link" href="/boards">榜单</Link>
                   <Link className="nav-link" href="/boards/new">创建榜单</Link>
+                  {auth && <Link className="nav-link" href="/invite/analytics">邀请分析</Link>}
                   {isAdmin && (
                     <>
                       <Link className="nav-link" href="/admin/boards">审核榜单</Link>
                       <Link className="nav-link" href="/admin/items">审核对象</Link>
+                      <Link className="nav-link" href="/admin/invite-codes">邀请码</Link>
                     </>
                   )}
                   {!auth && (

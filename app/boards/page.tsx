@@ -10,8 +10,16 @@ type Board = {
   title: string;
   description?: string | null;
   approvedItemCount: number;
+  participantCount?: number;
   avgRating: number;
-  topItems: Array<{ id: string; name: string; imageUrl: string; avgRating: number }>;
+  topItems: Array<{
+    id: string;
+    name: string;
+    quoteSnippet?: string;
+    imageUrl: string;
+    avgRating: number;
+    reviewCount: number;
+  }>;
 };
 
 export default function BoardsPage() {
@@ -44,8 +52,9 @@ export default function BoardsPage() {
                 id={board.id}
                 title={board.title}
                 description={board.description}
-                participantCount={board.approvedItemCount}
+                participantCount={board.participantCount ?? board.approvedItemCount}
                 topItems={board.topItems}
+                tone={idx}
               />
               <div className="board-avg-line">
                 榜单均分：<span className="score-star">★</span>{board.avgRating ? board.avgRating.toFixed(1) : "--"}

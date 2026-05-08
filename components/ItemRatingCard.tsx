@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { StarMeter } from "@/components/HotBoardCard";
+import { QUOTE_PLACEHOLDER } from "@/lib/reviewQuote";
 
 type ItemRatingCardProps = {
-  rank: number;
   boardId: string;
   id: string;
   name: string;
-  description: string;
+  /** 引号内展示：点赞最高的评论或占位 */
+  quoteSnippet: string;
   imageUrl: string;
   avgRating: number;
   reviewCount: number;
@@ -15,41 +17,44 @@ type ItemRatingCardProps = {
 };
 
 export function ItemRatingCard({
-  rank,
   boardId,
   id,
   name,
-  description,
+  quoteSnippet,
   imageUrl,
   avgRating,
   reviewCount,
   myRating
 }: ItemRatingCardProps) {
   return (
-    <article className="item-rating-card">
-      <div className={`item-rank rank-${rank > 3 ? 4 : rank}`}>{rank}</div>
-
-      <div className="item-main">
-        <div className="item-main-top">
-          <img src={imageUrl} alt={name} className="item-thumb" />
-          <div>
-            <h3>{name}</h3>
-            <p>{description}</p>
-          </div>
+    <article className="hot-board-row board-item-detail-row">
+      <div className="hot-board-row-thumb">
+        {imageUrl ? <img src={imageUrl} alt="" /> : <span className="hot-board-row-thumb-fallback">{name.slice(0, 1)}</span>}
+      </div>
+      <div className="hot-board-row-body">
+        <div className="hot-board-row-name">{name}</div>
+        <div
+          className={[
+            "hot-board-row-quote",
+            quoteSnippet === QUOTE_PLACEHOLDER ? "hot-board-row-quote--muted" : ""
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          {"\u201c"}
+          {quoteSnippet}
+          {"\u201d"}
         </div>
       </div>
-
-      <div className="item-score-box">
-        <span className="item-score">{avgRating > 0 ? avgRating.toFixed(1) : "--"}</span>
-        <span className="item-votes">{reviewCount} 人评分</span>
-      </div>
-
-      <div className="item-actions">
+      <div className="hot-board-row-aside board-item-detail-aside">
+        <div className="hot-board-row-score">{avgRating > 0 ? avgRating.toFixed(1) : "—"}</div>
+        {avgRating > 0 ? <StarMeter value={avgRating} className="hot-board-row-stars" /> : null}
+        <div className="hot-board-row-meta">{reviewCount} 评分</div>
         <Link
-          className={`item-action-link ${myRating ? "reviewed-btn" : ""}`}
+          className={`board-item-action-link ${myRating ? "board-item-action-link--done" : ""}`}
           href={`/boards/${boardId}/items/${id}`}
         >
-          {myRating ? `我的评分: ${myRating.toFixed(1)}` : "去打分"}
+          {myRating ? `我的 ${myRating.toFixed(1)}` : "去打分"}
         </Link>
       </div>
     </article>

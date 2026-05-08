@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ModerationStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { pickTopLikedCommentSnippet } from "@/lib/reviewQuote";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -15,7 +16,10 @@ export async function GET(_: Request, ctx: Ctx) {
           boardItem: {
             include: {
               reviews: {
-                include: { user: { select: { id: true, username: true } } },
+                include: {
+                  user: { select: { id: true, username: true } },
+                  _count: { select: { likes: true } }
+                },
                 orderBy: { updatedAt: "desc" }
               }
             }
@@ -36,6 +40,7 @@ export async function GET(_: Request, ctx: Ctx) {
       id: x.boardItem.id,
       name: x.boardItem.name,
       description: x.boardItem.description,
+      quoteSnippet: pickTopLikedCommentSnippet(x.boardItem.reviews),
       imageUrl: x.boardItem.imageUrl,
       avgRating: Number(avg.toFixed(1)),
       reviewCount: x.boardItem.reviews.length,

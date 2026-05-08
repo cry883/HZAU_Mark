@@ -1,5 +1,13 @@
 import bcrypt from "bcryptjs";
 import { ModerationStatus, PrismaClient, Role } from "@prisma/client";
+import {
+  addDays,
+  BOOTSTRAP_INVITE_CODE,
+  BOOTSTRAP_INVITE_MAX_USES,
+  BOOTSTRAP_INVITE_VALID_DAYS,
+  USER_INVITE_MAX_USES,
+  USER_INVITE_VALID_DAYS
+} from "../lib/inviteConstants";
 
 const prisma = new PrismaClient();
 
@@ -28,8 +36,27 @@ async function main() {
     }
   });
 
-  await prisma.inviteCode.create({ data: { code: "HZAU2026", issuerId: admin.id, isActive: true } });
-  await prisma.inviteCode.create({ data: { code: "ALICE888", issuerId: userA.id, isActive: true } });
+  const bootstrapExpires = addDays(new Date(), BOOTSTRAP_INVITE_VALID_DAYS);
+  await prisma.inviteCode.create({
+    data: {
+      code: BOOTSTRAP_INVITE_CODE,
+      issuerId: admin.id,
+      isActive: true,
+      maxUses: BOOTSTRAP_INVITE_MAX_USES,
+      usedCount: 0,
+      expiresAt: bootstrapExpires
+    }
+  });
+  await prisma.inviteCode.create({
+    data: {
+      code: "ALICE888",
+      issuerId: userA.id,
+      isActive: true,
+      maxUses: USER_INVITE_MAX_USES,
+      usedCount: 0,
+      expiresAt: addDays(new Date(), USER_INVITE_VALID_DAYS)
+    }
+  });
 
   const board = await prisma.board.create({
     data: {

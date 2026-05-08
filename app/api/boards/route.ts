@@ -3,6 +3,7 @@ import { ModerationStatus } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getAuthUserFromCookie, unauthorized } from "@/lib/auth";
+import { pickTopLikedCommentSnippet } from "@/lib/reviewQuote";
 
 const createSchema = z.object({
   title: z.string().min(2),
@@ -39,7 +40,9 @@ export async function GET(req: NextRequest) {
         include: {
           boardItem: {
             include: {
-              reviews: true
+              reviews: {
+                include: { _count: { select: { likes: true } } }
+              }
             }
           }
         }
@@ -58,8 +61,10 @@ export async function GET(req: NextRequest) {
         return {
           id: bi.boardItem.id,
           name: bi.boardItem.name,
+          quoteSnippet: pickTopLikedCommentSnippet(bi.boardItem.reviews),
           imageUrl: bi.boardItem.imageUrl,
-          avgRating: itemAvg
+          avgRating: itemAvg,
+          reviewCount: bi.boardItem.reviews.length
         };
       })
       .sort((a, c) => c.avgRating - a.avgRating)
@@ -69,6 +74,8 @@ export async function GET(req: NextRequest) {
       title: b.title,
       description: b.description,
       approvedItemCount: b.boardItems.length,
+      /** 总评分条数，与首页卡片徽章一致 */
+      participantCount: ratings.length,
       avgRating: Number(avg.toFixed(1)),
       topItems
     };

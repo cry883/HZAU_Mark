@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function RegisterPage() {
@@ -11,6 +11,13 @@ export default function RegisterPage() {
   const [inviteCode, setInviteCode] = useState("");
   const [msg, setMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const raw = searchParams.get("invite");
+    if (!raw) return;
+    const v = raw.trim().toUpperCase();
+    setInviteCode((prev) => (prev ? prev : v));
+  }, [searchParams]);
 
   async function submit() {
     if (submitting) return;
@@ -41,7 +48,9 @@ export default function RegisterPage() {
   return (
     <main>
       <h1 className="page-title">注册</h1>
-      <p className="page-subtitle">使用邀请码完成注册，成功后会自动登录。</p>
+      <p className="page-subtitle">
+        使用邀请码完成注册，成功后会自动登录。分享链接可带参数：/auth/register?invite=你的码
+      </p>
       <div className="card auth-card">
         <div className="form-grid">
           <input placeholder="用户名（至少3位）" value={username} onChange={(e) => setUsername(e.target.value)} />

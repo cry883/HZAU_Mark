@@ -40,10 +40,17 @@ model InviteCode {
   id        String   @id @default(cuid())
   code      String   @unique
   isActive  Boolean  @default(true)
+  /// 已使用次数（与 User.inviteCodeId 一致，注册时原子递增）
+  usedCount Int      @default(0)
+  maxUses   Int      @default(10)
+  expiresAt DateTime
   issuerId  String
   issuer    User     @relation("IssuedBy", fields: [issuerId], references: [id])
   usedBy    User[]   @relation("UsedBy")
   createdAt DateTime @default(now())
+
+  @@index([code])
+  @@index([expiresAt])
 }
 
 model Board {

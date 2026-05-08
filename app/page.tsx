@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ModerationStatus } from "@prisma/client";
 import { HotBoardCard } from "@/components/HotBoardCard";
 import { HomeBoardSearch } from "@/components/HomeBoardSearch";
+import { pickTopLikedCommentSnippet } from "@/lib/reviewQuote";
 
 async function getFeaturedBoards() {
   return prisma.board.findMany({
@@ -12,7 +13,13 @@ async function getFeaturedBoards() {
     include: {
       boardItems: {
         where: { boardItem: { status: ModerationStatus.APPROVED } },
-        include: { boardItem: { include: { reviews: true } } }
+        include: {
+          boardItem: {
+            include: {
+              reviews: { include: { _count: { select: { likes: true } } } }
+            }
+          }
+        }
       }
     }
   });
@@ -43,8 +50,10 @@ export default async function HomePage() {
               return {
                 id: x.boardItem.id,
                 name: x.boardItem.name,
+                quoteSnippet: pickTopLikedCommentSnippet(x.boardItem.reviews),
                 avgRating: itemAvg,
-                imageUrl: x.boardItem.imageUrl
+                imageUrl: x.boardItem.imageUrl,
+                reviewCount: x.boardItem.reviews.length
               };
             })
             .sort((a, b) => b.avgRating - a.avgRating);
@@ -58,6 +67,7 @@ export default async function HomePage() {
                 description={board.description}
                 participantCount={scores.length}
                 topItems={rankedItems}
+                tone={idx}
               />
               <div className="board-avg-line">
                 榜单均分：<span className="score-star">★</span>{avg ? avg.toFixed(1) : "--"}

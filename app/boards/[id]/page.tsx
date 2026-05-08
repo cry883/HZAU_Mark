@@ -4,10 +4,17 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ItemRatingCard } from "@/components/ItemRatingCard";
 
+function heroToneFromBoardId(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+  return Math.abs(h) % 6;
+}
+
 type BoardItem = {
   id: string;
   name: string;
   description: string;
+  quoteSnippet: string;
   imageUrl: string;
   avgRating: number;
   reviewCount: number;
@@ -143,58 +150,68 @@ export default function BoardDetailPage() {
     .sort((a, b) => b.avgRating - a.avgRating)
     .slice(0, 3);
 
+  const heroTone = heroToneFromBoardId(data.board.id);
+  const heroToneClass = `hot-board-card-hero--tone-${heroTone}`;
+
   return (
     <main>
-      <header className="board-detail-header">
-        <h1 className="page-title">{data.board.title}</h1>
-        <p className="page-subtitle">{data.board.description || "为榜单对象打分（支持 0.5 分）"}</p>
-        <p className="muted board-visibility-hint">仅展示“本榜单内且已审核通过”的对象。</p>
-      </header>
-      <div className="board-detail-grid">
-        <section>
-          {data.boardItems.map((item, idx) => (
+      <div className="hot-board-card board-detail-page-card">
+        <header className={`hot-board-card-hero ${heroToneClass}`}>
+          <div className="hot-board-card-hero-main">
+            <h1 className="hot-board-card-title">{data.board.title}</h1>
+            {totalReviews > 0 ? (
+              <div className="hot-board-hero-badge">
+                <span className="hot-board-hero-badge-star" aria-hidden>
+                  ★
+                </span>
+                <span>{totalReviews} 评分</span>
+              </div>
+            ) : (
+              <div className="hot-board-hero-badge hot-board-hero-badge--dim">暂无评分</div>
+            )}
+            <p className="hot-board-card-sub">
+              {data.board.description?.trim() || "为榜单对象打分（支持 0.5 分）。仅展示本榜单内且已审核通过的对象。"}
+            </p>
+          </div>
+        </header>
+        <div className="hot-board-card-rows">
+          {data.boardItems.map((item) => (
             <ItemRatingCard
               key={item.id}
-              rank={idx + 1}
               boardId={data.board.id}
               id={item.id}
               name={item.name}
-              description={item.description}
+              quoteSnippet={item.quoteSnippet}
               imageUrl={item.imageUrl}
               avgRating={item.avgRating}
               reviewCount={item.reviewCount}
               myRating={myRatings[item.id]}
             />
           ))}
-          <article className="card add-item-card">
-            <h3>补充对象到本榜单</h3>
-            <p className="muted">提交后进入待审核，管理员通过后才会在前台展示。</p>
-            <div className="form-grid">
-              <input
-                placeholder="对象名称"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-              />
-              <textarea
-                rows={3}
-                placeholder="对象描述"
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-              />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => onPickImage(e.target.files?.[0])}
-              />
-              {newImagePreview && <img src={newImagePreview} alt="预览" className="add-item-preview" />}
-              <button type="button" disabled={addingItem} onClick={addBoardItem}>
-                {addingItem ? "提交中..." : "提交对象审核"}
-              </button>
-            </div>
-            {!!addMsg && <p className={`message ${addMsg.includes("已提交") ? "success" : "error"}`}>{addMsg}</p>}
-          </article>
-        </section>
-        <aside className="board-sidebar">
+        </div>
+      </div>
+
+      <div className="board-detail-footer-grid">
+        <article className="card add-item-card">
+          <h3>补充对象到本榜单</h3>
+          <p className="muted">提交后进入待审核，管理员通过后才会在前台展示。</p>
+          <div className="form-grid">
+            <input placeholder="对象名称" value={newName} onChange={(e) => setNewName(e.target.value)} />
+            <textarea
+              rows={3}
+              placeholder="对象描述"
+              value={newDescription}
+              onChange={(e) => setNewDescription(e.target.value)}
+            />
+            <input type="file" accept="image/*" onChange={(e) => onPickImage(e.target.files?.[0])} />
+            {newImagePreview && <img src={newImagePreview} alt="预览" className="add-item-preview" />}
+            <button type="button" disabled={addingItem} onClick={addBoardItem}>
+              {addingItem ? "提交中..." : "提交对象审核"}
+            </button>
+          </div>
+          {!!addMsg && <p className={`message ${addMsg.includes("已提交") ? "success" : "error"}`}>{addMsg}</p>}
+        </article>
+        <aside className="board-detail-aside-cards">
           <div className="card">
             <h3>榜单统计</h3>
             <p className="muted">对象总数：{data.boardItems.length}</p>
